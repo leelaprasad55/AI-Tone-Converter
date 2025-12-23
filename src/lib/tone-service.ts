@@ -28,6 +28,10 @@ export async function analyzeTone(params: AnalyzeParams): Promise<ToneAnalysis> 
     throw new Error(error.message || 'Failed to analyze tone');
   }
 
+  if (data?.error) {
+    throw new Error(data.error);
+  }
+
   return data as ToneAnalysis;
 }
 
@@ -46,6 +50,10 @@ export async function rewriteText(params: RewriteParams): Promise<RewriteResult>
   if (error) {
     console.error('Rewrite error:', error);
     throw new Error(error.message || 'Failed to rewrite text');
+  }
+
+  if (data?.error) {
+    throw new Error(data.error);
   }
 
   return data as RewriteResult;
@@ -69,6 +77,11 @@ export async function saveToneAnalysis(
     empathy_score: analysis.empathy_score,
     formality_score: analysis.formality_score,
     aggression_score: analysis.aggression_score,
+    defensiveness_score: analysis.defensiveness_score ?? 0,
+    condescension_score: analysis.condescension_score ?? 0,
+    manipulation_score: analysis.manipulation_score ?? 0,
+    dismissiveness_score: analysis.dismissiveness_score ?? 0,
+    anxiety_score: analysis.anxiety_score ?? 0,
     severity: analysis.severity,
     rewritten_text: rewrittenText,
   });

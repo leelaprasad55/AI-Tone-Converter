@@ -47,14 +47,19 @@ export type Database = {
       tone_analyses: {
         Row: {
           aggression_score: number
+          anxiety_score: number
           audience: string
+          condescension_score: number
           content_medium: string
           created_at: string
+          defensiveness_score: number
+          dismissiveness_score: number
           empathy_score: number
           formality_score: number
           id: string
           input_text: string
           language: string
+          manipulation_score: number
           passive_agg_score: number
           rewritten_text: string | null
           sarcasm_score: number
@@ -62,14 +67,19 @@ export type Database = {
         }
         Insert: {
           aggression_score?: number
+          anxiety_score?: number
           audience?: string
+          condescension_score?: number
           content_medium?: string
           created_at?: string
+          defensiveness_score?: number
+          dismissiveness_score?: number
           empathy_score?: number
           formality_score?: number
           id?: string
           input_text: string
           language?: string
+          manipulation_score?: number
           passive_agg_score?: number
           rewritten_text?: string | null
           sarcasm_score?: number
@@ -77,14 +87,19 @@ export type Database = {
         }
         Update: {
           aggression_score?: number
+          anxiety_score?: number
           audience?: string
+          condescension_score?: number
           content_medium?: string
           created_at?: string
+          defensiveness_score?: number
+          dismissiveness_score?: number
           empathy_score?: number
           formality_score?: number
           id?: string
           input_text?: string
           language?: string
+          manipulation_score?: number
           passive_agg_score?: number
           rewritten_text?: string | null
           sarcasm_score?: number

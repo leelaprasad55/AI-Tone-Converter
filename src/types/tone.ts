@@ -4,6 +4,11 @@ export interface ToneScores {
   empathy_score: number;
   formality_score: number;
   aggression_score: number;
+  defensiveness_score: number;
+  condescension_score: number;
+  manipulation_score: number;
+  dismissiveness_score: number;
+  anxiety_score: number;
 }
 
 export interface ToneAnalysis extends ToneScores {
@@ -59,3 +64,16 @@ export const CONTENT_MEDIUMS: { value: ContentMedium; label: string }[] = [
   { value: 'chat', label: 'Chat Message' },
   { value: 'social', label: 'Social Media' },
 ];
+
+export const TONE_LABELS: Record<keyof ToneScores, { label: string; description: string; color: string }> = {
+  passive_agg_score: { label: 'Passive-Aggressive', description: 'Indirect hostility', color: 'destructive' },
+  sarcasm_score: { label: 'Sarcasm', description: 'Mocking undertones', color: 'warning' },
+  empathy_score: { label: 'Empathy', description: 'Understanding & care', color: 'success' },
+  formality_score: { label: 'Formality', description: 'Professional tone', color: 'primary' },
+  aggression_score: { label: 'Aggression', description: 'Direct hostility', color: 'destructive' },
+  defensiveness_score: { label: 'Defensiveness', description: 'Self-protective tone', color: 'warning' },
+  condescension_score: { label: 'Condescension', description: 'Talking down', color: 'destructive' },
+  manipulation_score: { label: 'Manipulation', description: 'Subtle control', color: 'destructive' },
+  dismissiveness_score: { label: 'Dismissiveness', description: 'Disregarding others', color: 'warning' },
+  anxiety_score: { label: 'Anxiety', description: 'Nervous energy', color: 'muted' },
+};

@@ -25,7 +25,12 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+      console.error('LOVABLE_API_KEY is not configured');
+      throw new Error('AI service is not configured');
+    }
+
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+      throw new Error('Text is required for analysis');
     }
 
     const culturalContext = CULTURAL_CONTEXTS[language] || CULTURAL_CONTEXTS.EN;
@@ -53,11 +58,28 @@ Return JSON with this exact structure:
   "empathy_score": <0-100>,
   "formality_score": <0-100>,
   "aggression_score": <0-100>,
+  "defensiveness_score": <0-100>,
+  "condescension_score": <0-100>,
+  "manipulation_score": <0-100>,
+  "dismissiveness_score": <0-100>,
+  "anxiety_score": <0-100>,
   "severity": "<high|medium|low>",
   "emotion_flags": ["<detected emotions>"],
   "analysis_summary": "<brief 2-sentence analysis>",
   "key_phrases": ["<problematic phrases if any>"]
-}`;
+}
+
+Scoring guide:
+- passive_agg_score: Indirect hostility, backhanded compliments
+- sarcasm_score: Mocking, ironic undertones
+- empathy_score: Understanding, compassion shown
+- formality_score: Professional language level
+- aggression_score: Direct hostility, anger
+- defensiveness_score: Self-protective, justifying behavior
+- condescension_score: Talking down, patronizing
+- manipulation_score: Guilt-tripping, emotional control
+- dismissiveness_score: Ignoring, belittling concerns
+- anxiety_score: Nervous energy, over-explaining`;
     } else if (action === 'rewrite') {
       systemPrompt = `You are an expert diplomatic communication writer. Rewrite text to remove negative tones while preserving the original intent 100%.
 
@@ -70,10 +92,16 @@ IMPORTANT: Return ONLY valid JSON, no markdown, no code blocks.`;
       const adjustmentInstructions = toneAdjustments 
         ? `
 Specific tone adjustments requested:
-- Passive-aggressive: reduce by ${100 - toneAdjustments.passive_agg}%
-- Sarcasm: reduce by ${100 - toneAdjustments.sarcasm}%
-- Empathy: increase to ${toneAdjustments.empathy}%
-- Formality: adjust to ${toneAdjustments.formality}%`
+- Passive-aggressive: target ${toneAdjustments.passive_agg_score}%
+- Sarcasm: target ${toneAdjustments.sarcasm_score}%
+- Empathy: target ${toneAdjustments.empathy_score}%
+- Formality: target ${toneAdjustments.formality_score}%
+- Aggression: target ${toneAdjustments.aggression_score}%
+- Defensiveness: target ${toneAdjustments.defensiveness_score || 0}%
+- Condescension: target ${toneAdjustments.condescension_score || 0}%
+- Manipulation: target ${toneAdjustments.manipulation_score || 0}%
+- Dismissiveness: target ${toneAdjustments.dismissiveness_score || 0}%
+- Anxiety: target ${toneAdjustments.anxiety_score || 0}%`
         : '';
 
       userPrompt = `Rewrite this text to be diplomatic and professional:
@@ -92,12 +120,19 @@ Return JSON with:
     "sarcasm_score": <0-100>,
     "empathy_score": <0-100>,
     "formality_score": <0-100>,
-    "aggression_score": <0-100>
+    "aggression_score": <0-100>,
+    "defensiveness_score": <0-100>,
+    "condescension_score": <0-100>,
+    "manipulation_score": <0-100>,
+    "dismissiveness_score": <0-100>,
+    "anxiety_score": <0-100>
   }
 }`;
+    } else {
+      throw new Error(`Invalid action: ${action}`);
     }
 
-    console.log(`Processing ${action} request for ${language} text...`);
+    console.log(`Processing ${action} request for ${language} text (${text.length} chars)...`);
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -137,6 +172,7 @@ Return JSON with:
     const content = data.choices?.[0]?.message?.content;
 
     if (!content) {
+      console.error('No content in AI response:', JSON.stringify(data));
       throw new Error('No response from AI');
     }
 

@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Sparkles, Wand2, SlidersHorizontal, Loader2 } from 'lucide-react';
+import { Sparkles, Wand2, SlidersHorizontal, Loader2, LogOut, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 import { ToneBreakdown } from '@/components/ToneBreakdown';
@@ -33,7 +35,24 @@ const Index = () => {
   const [contentMedium] = useState<ContentMedium>('email');
   const [manualScores, setManualScores] = useState<ToneScores | null>(null);
   const [refreshMemory, setRefreshMemory] = useState(0);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({ title: 'Logged out' });
+  };
 
   const handleAnalyze = async () => {
     if (!inputText.trim()) {
@@ -107,6 +126,17 @@ const Index = () => {
             </div>
             <div className="flex items-center gap-3">
               <LanguageSelector selected={language} onChange={setLanguage} />
+              {user ? (
+                <Button variant="outline" size="sm" onClick={handleLogout} className="gap-2">
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              ) : (
+                <Button variant="outline" size="sm" onClick={() => navigate('/auth')} className="gap-2">
+                  <User className="h-4 w-4" />
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         </div>

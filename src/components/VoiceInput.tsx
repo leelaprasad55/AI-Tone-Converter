@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 interface VoiceInputProps {
@@ -10,13 +10,24 @@ interface VoiceInputProps {
 }
 
 export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
-  const { isListening, transcript, startListening, stopListening, isSupported } = useSpeechRecognition();
+  const { isListening, transcript, startListening, stopListening, resetTranscript, isSupported } = useSpeechRecognition();
+  const lastTranscriptRef = useRef('');
 
+  // Send transcript when it changes during listening (real-time)
   useEffect(() => {
-    if (transcript && !isListening) {
+    if (transcript && transcript !== lastTranscriptRef.current) {
       onTranscript(transcript);
+      lastTranscriptRef.current = transcript;
     }
-  }, [transcript, isListening, onTranscript]);
+  }, [transcript, onTranscript]);
+
+  // Reset when listening stops
+  useEffect(() => {
+    if (!isListening) {
+      lastTranscriptRef.current = '';
+      resetTranscript();
+    }
+  }, [isListening, resetTranscript]);
 
   if (!isSupported) {
     return (

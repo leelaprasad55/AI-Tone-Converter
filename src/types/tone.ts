@@ -36,7 +36,7 @@ export interface Benchmark {
 }
 
 export type Language = 'EN' | 'HI' | 'ES' | 'FR' | 'DE' | 'PT' | 'ZH';
-export type Audience = 'boss' | 'client' | 'peer' | 'HR' | 'general';
+export type Audience = 'boss' | 'client' | 'peer' | 'HR' | 'general' | 'investor' | 'team' | 'vendor' | 'partner' | 'customer';
 export type ContentMedium = 'email' | 'tweet' | 'formal_doc' | 'chat' | 'social';
 
 export const LANGUAGES: { value: Language; label: string; flag: string }[] = [
@@ -55,6 +55,11 @@ export const AUDIENCES: { value: Audience; label: string; icon: string }[] = [
   { value: 'peer', label: 'Peer', icon: '👥' },
   { value: 'HR', label: 'HR', icon: '📋' },
   { value: 'general', label: 'General', icon: '🌐' },
+  { value: 'investor', label: 'Investor', icon: '💰' },
+  { value: 'team', label: 'Team', icon: '👨‍👩‍👧‍👦' },
+  { value: 'vendor', label: 'Vendor', icon: '🏪' },
+  { value: 'partner', label: 'Partner', icon: '🤲' },
+  { value: 'customer', label: 'Customer', icon: '🛒' },
 ];
 
 export const CONTENT_MEDIUMS: { value: ContentMedium; label: string }[] = [

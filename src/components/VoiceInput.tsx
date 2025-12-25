@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Mic, MicOff, Loader2 } from 'lucide-react';
+import { Mic, MicOff } from 'lucide-react';
 import { useSpeechRecognition } from '@/hooks/use-speech-recognition';
 import { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
@@ -39,14 +39,22 @@ export function VoiceInput({ onTranscript, className }: VoiceInputProps) {
 
   return (
     <Button
-      variant={isListening ? 'destructive' : 'outline'}
+      variant="outline"
       size="icon"
-      onClick={isListening ? stopListening : startListening}
-      className={cn(isListening && 'animate-pulse', className)}
+      onClick={(e) => {
+        e.preventDefault();
+        isListening ? stopListening() : startListening();
+      }}
+      className={cn(
+        'transition-colors duration-200',
+        isListening && 'bg-green-500 border-green-500 text-white hover:bg-green-600 hover:border-green-600',
+        className
+      )}
       title={isListening ? 'Stop recording' : 'Start voice input'}
+      type="button"
     >
       {isListening ? (
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Mic className="h-4 w-4 animate-pulse" />
       ) : (
         <Mic className="h-4 w-4" />
       )}

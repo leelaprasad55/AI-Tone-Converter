@@ -110,78 +110,65 @@ SCORING CALIBRATION:
 - 81-100: Dominant/severe`;
 
     } else if (action === 'rewrite') {
-      systemPrompt = `You are an expert diplomatic communication writer and emotional intelligence specialist. Your rewrites must be UNIQUE, NATURAL, and EFFECTIVE.
+      systemPrompt = `You are an expert diplomatic communication writer. Your rewrites must be CONCISE, NATURAL, and EFFECTIVE.
 
 Cultural Context: ${culturalContext}
 Target Audience: ${audience} - ${audienceStyle}
 Content Medium: ${contentMedium}
 
-UNIQUENESS GUIDELINES (Seed: ${uniqueSeed}):
-${UNIQUENESS_TECHNIQUES.map((t, i) => `${i + 1}. ${t}`).join('\n')}
+CRITICAL CONCISENESS RULES:
+1. Keep the rewrite SHORT - aim for same length or shorter than original
+2. Remove unnecessary words, filler phrases, and over-explanations
+3. One clear point per sentence
+4. No excessive pleasantries or padding
+5. Be direct while remaining diplomatic
+6. Cut wordiness ruthlessly - every word must earn its place
 
-CRITICAL RULES:
+STYLE RULES:
 1. Return ONLY valid JSON - no markdown, no code blocks
 2. Preserve 100% of the original INTENT and key information
-3. Transform the TONE, not the message
-4. Make it sound like a skilled human wrote it, not AI
-5. The rewrite should feel fresh and natural, never templated`;
+3. Transform the TONE, not pad the message
+4. Sound professional and human, never verbose`;
 
       const adjustmentInstructions = toneAdjustments 
         ? `
-TARGET TONE ADJUSTMENTS (adjust toward these percentages):
-- Passive-aggressive: reduce to ${toneAdjustments.passive_agg_score}%
-- Sarcasm: reduce to ${toneAdjustments.sarcasm_score}%
-- Empathy: increase to ${toneAdjustments.empathy_score}%
-- Formality: adjust to ${toneAdjustments.formality_score}%
-- Aggression: reduce to ${toneAdjustments.aggression_score}%
-- Defensiveness: reduce to ${toneAdjustments.defensiveness_score || 10}%
-- Condescension: reduce to ${toneAdjustments.condescension_score || 5}%
-- Manipulation: eliminate (${toneAdjustments.manipulation_score || 0}%)
-- Dismissiveness: reduce to ${toneAdjustments.dismissiveness_score || 5}%
-- Anxiety: reduce to ${toneAdjustments.anxiety_score || 15}%`
+TARGET TONE (adjust toward these):
+- Passive-aggressive: ${toneAdjustments.passive_agg_score}% | Sarcasm: ${toneAdjustments.sarcasm_score}%
+- Empathy: ${toneAdjustments.empathy_score}% | Formality: ${toneAdjustments.formality_score}%
+- Aggression: ${toneAdjustments.aggression_score}% | Defensiveness: ${toneAdjustments.defensiveness_score || 10}%
+- Condescension: ${toneAdjustments.condescension_score || 5}% | Dismissiveness: ${toneAdjustments.dismissiveness_score || 5}%`
         : `
-DEFAULT TRANSFORMATION GOALS:
-- Remove ALL passive-aggressive undertones
-- Eliminate sarcasm while keeping wit if appropriate
-- Maximize empathy and understanding
-- Match formality to ${contentMedium} and ${audience}
-- Remove any aggression or hostility
-- Reduce defensiveness, focus on solutions
-- Eliminate condescension completely
-- Remove any manipulation tactics
-- Replace dismissiveness with engagement
-- Reduce anxiety, project calm confidence`;
+DEFAULT GOALS: Remove passive-aggression, sarcasm, hostility. Add empathy. Match formality to ${contentMedium}.`;
 
-      userPrompt = `Transform this text into a diplomatic, professional message while preserving its complete intent:
+      userPrompt = `Transform this into a SHORT, diplomatic message. Keep it CONCISE - same length or shorter than original.
 
-ORIGINAL TEXT:
+ORIGINAL (${text.split(/\s+/).length} words):
 "${text}"
 
 ${adjustmentInstructions}
 
-REWRITE REQUIREMENTS:
-1. Keep all factual content and requests intact
-2. Transform emotional tone to be constructive
-3. Make it appropriate for ${audience} via ${contentMedium}
-4. Sound authentic and human, not like a template
-5. Use varied sentence structure for natural flow
+REQUIREMENTS:
+1. CONCISE: Same word count or fewer - no padding
+2. Keep all facts and requests
+3. Fix tone, don't add fluff
+4. Appropriate for ${audience}
 
 Return JSON:
 {
-  "rewritten_text": "<your diplomatic rewrite - must be unique and natural sounding>",
-  "changes_summary": "<1-2 sentences on what was transformed and why>",
-  "intent_preserved_confidence": <85-100, how well intent was preserved>,
+  "rewritten_text": "<SHORT diplomatic rewrite - no longer than original>",
+  "changes_summary": "<1 sentence on key changes>",
+  "intent_preserved_confidence": <85-100>,
   "new_scores": {
-    "passive_agg_score": <new score 0-100>,
-    "sarcasm_score": <new score 0-100>,
-    "empathy_score": <new score 0-100>,
-    "formality_score": <new score 0-100>,
-    "aggression_score": <new score 0-100>,
-    "defensiveness_score": <new score 0-100>,
-    "condescension_score": <new score 0-100>,
-    "manipulation_score": <new score 0-100>,
-    "dismissiveness_score": <new score 0-100>,
-    "anxiety_score": <new score 0-100>
+    "passive_agg_score": <0-100>,
+    "sarcasm_score": <0-100>,
+    "empathy_score": <0-100>,
+    "formality_score": <0-100>,
+    "aggression_score": <0-100>,
+    "defensiveness_score": <0-100>,
+    "condescension_score": <0-100>,
+    "manipulation_score": <0-100>,
+    "dismissiveness_score": <0-100>,
+    "anxiety_score": <0-100>
   }
 }`;
     } else {

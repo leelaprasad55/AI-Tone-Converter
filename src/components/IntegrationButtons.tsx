@@ -3,18 +3,21 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Mail, MessageSquare, Share2, FileText, Copy, Check } from 'lucide-react';
+import { Mail, MessageSquare, Share2, FileDown, Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import jsPDF from 'jspdf';
 
 interface IntegrationButtonsProps {
   rewrittenText: string;
+  originalText?: string;
   className?: string;
 }
 
-export function IntegrationButtons({ rewrittenText, className }: IntegrationButtonsProps) {
+export function IntegrationButtons({ rewrittenText, originalText, className }: IntegrationButtonsProps) {
   const [gmailOpen, setGmailOpen] = useState(false);
   const [slackOpen, setSlackOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedFormatted, setCopiedFormatted] = useState(false);
   const { toast } = useToast();
 
   const handleCopy = async () => {
@@ -22,6 +25,80 @@ export function IntegrationButtons({ rewrittenText, className }: IntegrationButt
     setCopied(true);
     toast({ title: 'Copied to clipboard!' });
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleCopyFormatted = async () => {
+    const htmlContent = `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+        ${rewrittenText.split('\n').map(p => `<p style="margin: 0 0 10px 0;">${p}</p>`).join('')}
+      </div>
+    `;
+    
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'text/plain': new Blob([rewrittenText], { type: 'text/plain' }),
+          'text/html': new Blob([htmlContent], { type: 'text/html' }),
+        }),
+      ]);
+      setCopiedFormatted(true);
+      toast({ title: 'Copied formatted text for email!' });
+      setTimeout(() => setCopiedFormatted(false), 2000);
+    } catch {
+      await navigator.clipboard.writeText(rewrittenText);
+      setCopiedFormatted(true);
+      toast({ title: 'Copied to clipboard!' });
+      setTimeout(() => setCopiedFormatted(false), 2000);
+    }
+  };
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const maxWidth = pageWidth - margin * 2;
+    let y = 20;
+
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.text('AI Tone Corrector - Diplomatic Rewrite', margin, y);
+    y += 15;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, margin, y);
+    y += 15;
+
+    if (originalText) {
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0);
+      doc.text('Original Text:', margin, y);
+      y += 8;
+
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(80);
+      const originalLines = doc.splitTextToSize(originalText, maxWidth);
+      doc.text(originalLines, margin, y);
+      y += originalLines.length * 6 + 15;
+    }
+
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0);
+    doc.text('Diplomatic Rewrite:', margin, y);
+    y += 8;
+
+    doc.setFontSize(11);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(0);
+    const rewrittenLines = doc.splitTextToSize(rewrittenText, maxWidth);
+    doc.text(rewrittenLines, margin, y);
+
+    doc.save('diplomatic-rewrite.pdf');
+    toast({ title: 'PDF exported successfully!' });
   };
 
   const handleGmailSend = () => {
@@ -47,21 +124,24 @@ export function IntegrationButtons({ rewrittenText, className }: IntegrationButt
           {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           {copied ? 'Copied!' : 'Copy'}
         </Button>
+        <Button variant="outline" size="sm" onClick={handleCopyFormatted} className="gap-2">
+          {copiedFormatted ? <Check className="h-4 w-4" /> : <Mail className="h-4 w-4" />}
+          {copiedFormatted ? 'Copied!' : 'Copy for Email'}
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleExportPDF} className="gap-2">
+          <FileDown className="h-4 w-4" />
+          Export PDF
+        </Button>
         <Button variant="outline" size="sm" onClick={() => setGmailOpen(true)} className="gap-2">
           <Mail className="h-4 w-4" />
-          Gmail Draft
+          Gmail
         </Button>
         <Button variant="outline" size="sm" onClick={() => setSlackOpen(true)} className="gap-2">
           <MessageSquare className="h-4 w-4" />
           Slack
         </Button>
-        <Button variant="outline" size="sm" className="gap-2">
-          <FileText className="h-4 w-4" />
-          Export
-        </Button>
       </div>
 
-      {/* Gmail Dialog */}
       <Dialog open={gmailOpen} onOpenChange={setGmailOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -99,7 +179,6 @@ export function IntegrationButtons({ rewrittenText, className }: IntegrationButt
         </DialogContent>
       </Dialog>
 
-      {/* Slack Dialog */}
       <Dialog open={slackOpen} onOpenChange={setSlackOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>

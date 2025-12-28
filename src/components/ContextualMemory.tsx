@@ -1,27 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getRecentAnalyses } from '@/lib/tone-service';
-import { Clock, TrendingDown, TrendingUp } from 'lucide-react';
+import { Clock, TrendingDown, TrendingUp, RefreshCw } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface ContextualMemoryProps {
   className?: string;
   onRefresh?: () => void;
+  resetOnMount?: boolean;
 }
 
-export function ContextualMemory({ className, onRefresh }: ContextualMemoryProps) {
+export function ContextualMemory({ className, onRefresh, resetOnMount = true }: ContextualMemoryProps) {
   const [patterns, setPatterns] = useState<{
     avgPassiveAgg: number;
     avgEmpathy: number;
     trend: 'improving' | 'declining' | 'stable';
     totalAnalyses: number;
   } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    loadAnalyses();
-  }, [onRefresh]);
-
-  async function loadAnalyses() {
+  const loadAnalyses = useCallback(async () => {
+    setIsLoading(true);
     const data = await getRecentAnalyses(10);
 
     if (data.length >= 2) {
@@ -47,21 +47,49 @@ export function ContextualMemory({ className, onRefresh }: ContextualMemoryProps
         trend: 'stable',
         totalAnalyses: 1
       });
+    } else {
+      setPatterns(null);
     }
-  }
+    setIsLoading(false);
+  }, []);
+
+  // Reset on mount if resetOnMount is true
+  useEffect(() => {
+    if (resetOnMount) {
+      setPatterns(null);
+    }
+    loadAnalyses();
+  }, [resetOnMount, loadAnalyses]);
+
+  // Reload when onRefresh changes (new analysis completed)
+  useEffect(() => {
+    if (onRefresh) {
+      loadAnalyses();
+    }
+  }, [onRefresh, loadAnalyses]);
+
+  const handleManualRefresh = () => {
+    setPatterns(null);
+    loadAnalyses();
+  };
 
   if (!patterns) {
     return (
       <Card className={cn('glass-card', className)}>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Clock className="h-5 w-5 text-primary" />
-            Your Tone Profile
+          <CardTitle className="flex items-center justify-between text-lg">
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-primary" />
+              Your Tone Profile
+            </div>
+            <Button variant="ghost" size="icon" onClick={handleManualRefresh} disabled={isLoading}>
+              <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-4">
-            Analyze some text to build your tone profile
+            {isLoading ? 'Loading profile...' : 'Analyze some text to build your tone profile'}
           </p>
         </CardContent>
       </Card>
@@ -71,9 +99,14 @@ export function ContextualMemory({ className, onRefresh }: ContextualMemoryProps
   return (
     <Card className={cn('glass-card', className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Clock className="h-5 w-5 text-primary" />
-          Your Tone Profile
+        <CardTitle className="flex items-center justify-between text-lg">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-primary" />
+            Your Tone Profile
+          </div>
+          <Button variant="ghost" size="icon" onClick={handleManualRefresh} disabled={isLoading}>
+            <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

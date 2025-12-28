@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,6 +17,7 @@ import { AudienceSelector } from '@/components/AudienceSelector';
 import { VoiceInput } from '@/components/VoiceInput';
 import { IntegrationButtons } from '@/components/IntegrationButtons';
 import { CollaborationPanel } from '@/components/CollaborationPanel';
+import { LiveToneIndicator } from '@/components/LiveToneIndicator';
 
 import { analyzeTone, rewriteText, saveToneAnalysis } from '@/lib/tone-service';
 import type { ToneAnalysis, RewriteResult, ToneScores, Language, Audience, ContentMedium } from '@/types/tone';
@@ -33,7 +34,17 @@ const Index = () => {
   const [contentMedium] = useState<ContentMedium>('email');
   const [manualScores, setManualScores] = useState<ToneScores | null>(null);
   const [refreshMemory, setRefreshMemory] = useState(0);
+  const [sessionKey, setSessionKey] = useState(0);
   const { toast } = useToast();
+
+  // Clear all state on page load/refresh
+  useEffect(() => {
+    setInputText('');
+    setAnalysis(null);
+    setRewriteResult(null);
+    setManualScores(null);
+    setSessionKey(prev => prev + 1);
+  }, []);
 
   const handleAnalyze = async () => {
     if (!inputText.trim()) {
@@ -131,6 +142,7 @@ const Index = () => {
                   placeholder="Paste your email, message, or text here... (e.g., 'Fine, whatever you say.')"
                   className="min-h-[120px] resize-none"
                 />
+                <LiveToneIndicator text={inputText} className="py-2" />
                 <div className="flex flex-col sm:flex-row gap-3">
                   <AudienceSelector selected={audience} onChange={setAudience} className="flex-1" />
                   <Button onClick={handleAnalyze} disabled={isAnalyzing} className="gap-2" size="lg">
@@ -191,7 +203,7 @@ const Index = () => {
                     confidence={rewriteResult.intent_preserved_confidence}
                   />
                   <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-                    <IntegrationButtons rewrittenText={rewriteResult.rewritten_text} />
+                    <IntegrationButtons rewrittenText={rewriteResult.rewritten_text} originalText={inputText} />
                     <CollaborationPanel rewrittenText={rewriteResult.rewritten_text} originalText={inputText} />
                   </div>
                 </CardContent>
@@ -201,7 +213,7 @@ const Index = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <ContextualMemory onRefresh={() => refreshMemory} />
+            <ContextualMemory key={sessionKey} onRefresh={() => refreshMemory} resetOnMount={true} />
             {rewriteResult && <BenchmarkComparison userScores={rewriteResult.new_scores} />}
           </div>
         </div>

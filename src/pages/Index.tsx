@@ -213,7 +213,7 @@ const Index = () => {
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <ContextualMemory key={sessionKey} onRefresh={() => refreshMemory} resetOnMount={true} />
+            <ContextualMemory key={sessionKey} refreshTrigger={refreshMemory} resetOnMount={true} />
             {rewriteResult && <BenchmarkComparison userScores={rewriteResult.new_scores} />}
           </div>
         </div>

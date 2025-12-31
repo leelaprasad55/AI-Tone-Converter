@@ -4,13 +4,14 @@ import { getRecentAnalyses } from '@/lib/tone-service';
 import { Clock, TrendingDown, TrendingUp, RefreshCw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+
 interface ContextualMemoryProps {
   className?: string;
-  onRefresh?: () => void;
+  refreshTrigger?: number;
   resetOnMount?: boolean;
 }
 
-export function ContextualMemory({ className, onRefresh, resetOnMount = true }: ContextualMemoryProps) {
+export function ContextualMemory({ className, refreshTrigger, resetOnMount = true }: ContextualMemoryProps) {
   const [patterns, setPatterns] = useState<{
     avgPassiveAgg: number;
     avgEmpathy: number;
@@ -18,6 +19,7 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
     totalAnalyses: number;
   } | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialMount, setInitialMount] = useState(true);
 
   const loadAnalyses = useCallback(async () => {
     setIsLoading(true);
@@ -52,20 +54,21 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
     setIsLoading(false);
   }, []);
 
-  // Reset on mount if resetOnMount is true - don't load historical data
+  // Reset on mount - start fresh at 0,0
   useEffect(() => {
     if (resetOnMount) {
       setPatterns(null);
-      // Don't load historical data - start fresh at 0,0
+      setInitialMount(true);
     }
   }, [resetOnMount]);
 
-  // Reload when onRefresh changes (new analysis completed)
+  // Load data only when refreshTrigger changes (after an analysis), not on initial mount
   useEffect(() => {
-    if (onRefresh) {
+    if (refreshTrigger !== undefined && refreshTrigger > 0 && !initialMount) {
       loadAnalyses();
     }
-  }, [onRefresh, loadAnalyses]);
+    setInitialMount(false);
+  }, [refreshTrigger, loadAnalyses, initialMount]);
 
   const handleManualRefresh = () => {
     loadAnalyses();

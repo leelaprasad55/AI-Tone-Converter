@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { getRecentAnalyses } from '@/lib/tone-service';
-import { Clock, TrendingDown, TrendingUp, RefreshCw } from 'lucide-react';
+import { Clock, TrendingDown, TrendingUp, RefreshCw, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-
 interface ContextualMemoryProps {
   className?: string;
   onRefresh?: () => void;
@@ -70,6 +69,10 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
 
   const handleManualRefresh = () => {
     loadAnalyses();
+  };
+
+  const handleClearProfile = () => {
+    setPatterns(null);
   };
 
   // Show 0,0 initial state when no patterns
@@ -153,9 +156,20 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
           </div>
         </div>
 
-        <p className="text-xs text-center text-muted-foreground">
-          Based on {patterns.totalAnalyses} recent {patterns.totalAnalyses === 1 ? 'analysis' : 'analyses'}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            Based on {patterns.totalAnalyses} recent {patterns.totalAnalyses === 1 ? 'analysis' : 'analyses'}
+          </p>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleClearProfile}
+            className="text-xs text-muted-foreground hover:text-destructive h-6 px-2"
+          >
+            <Trash2 className="h-3 w-3 mr-1" />
+            Clear
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

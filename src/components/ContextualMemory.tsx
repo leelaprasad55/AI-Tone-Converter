@@ -53,13 +53,13 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
     setIsLoading(false);
   }, []);
 
-  // Reset on mount if resetOnMount is true
+  // Reset on mount if resetOnMount is true - don't load historical data
   useEffect(() => {
     if (resetOnMount) {
       setPatterns(null);
+      // Don't load historical data - start fresh at 0,0
     }
-    loadAnalyses();
-  }, [resetOnMount, loadAnalyses]);
+  }, [resetOnMount]);
 
   // Reload when onRefresh changes (new analysis completed)
   useEffect(() => {
@@ -69,10 +69,10 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
   }, [onRefresh, loadAnalyses]);
 
   const handleManualRefresh = () => {
-    setPatterns(null);
     loadAnalyses();
   };
 
+  // Show 0,0 initial state when no patterns
   if (!patterns) {
     return (
       <Card className={cn('glass-card', className)}>
@@ -87,9 +87,23 @@ export function ContextualMemory({ className, onRefresh, resetOnMount = true }: 
             </Button>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground text-center py-4">
-            {isLoading ? 'Loading profile...' : 'Analyze some text to build your tone profile'}
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Avg. Passive-Agg</p>
+              <p className="text-xl font-bold text-foreground">0%</p>
+            </div>
+            <div className="text-center p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Avg. Empathy</p>
+              <p className="text-xl font-bold text-foreground">0%</p>
+            </div>
+            <div className="text-center p-3 bg-muted rounded-lg">
+              <p className="text-xs text-muted-foreground">Trend</p>
+              <span className="text-sm font-medium text-muted-foreground">--</span>
+            </div>
+          </div>
+          <p className="text-xs text-center text-muted-foreground">
+            {isLoading ? 'Loading...' : 'Analyze text to build your profile'}
           </p>
         </CardContent>
       </Card>
